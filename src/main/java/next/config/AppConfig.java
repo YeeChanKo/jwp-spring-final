@@ -16,6 +16,8 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 
+import next.support.DBInitializer;
+
 @Configuration
 @ComponentScan(
 	basePackages = { "next.controller", "next.service", "next.dao" },
@@ -63,5 +65,10 @@ public class AppConfig {
 	    messageSource.setDefaultEncoding("UTF-8");
 	    messageSource.setCacheSeconds(30);
 	    return messageSource;
+	}
+	
+	@Bean
+	public DBInitializer dbInitializer(){
+		return new DBInitializer();
 	}
 }
