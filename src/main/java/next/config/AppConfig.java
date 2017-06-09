@@ -22,8 +22,8 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import next.support.DBInitializer;
 
 @Configuration
-@ComponentScan(basePackages = { "next.controller", "next.service",
-		"next.dao" }, excludeFilters = @ComponentScan.Filter(value = Controller.class, type = FilterType.ANNOTATION))
+@ComponentScan(basePackages = {
+		"next" }, excludeFilters = @ComponentScan.Filter(value = Controller.class, type = FilterType.ANNOTATION))
 @PropertySource("classpath:application.properties")
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class AppConfig {
