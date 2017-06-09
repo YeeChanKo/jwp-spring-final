@@ -24,23 +24,44 @@ public class QuestionController {
 	private QuestionDao questionDao;
 	@Autowired
 	private QnaService qnaService;
-	
+
 	private Question question;
-	
+
 	private List<Answer> answers;
 
 	@RequestMapping(value = "/{questionId}", method = RequestMethod.GET)
-	public String show(@PathVariable long questionId, Model model) throws Exception {
-	    question = qnaService.findById(questionId);
-	    answers = qnaService.findAllByQuestionId(questionId);
-	    
+	public String show(@PathVariable long questionId, Model model)
+			throws Exception {
+		question = qnaService.findById(questionId);
+		answers = qnaService.findAllByQuestionId(questionId);
 		model.addAttribute("question", question);
 		model.addAttribute("answers", answers);
 		return "/qna/show";
 	}
 
+	@RequestMapping(value = "/{questionId}/edit", method = RequestMethod.GET)
+	public String editForm(@LoginUser User loginUser,
+			@PathVariable long questionId, Model model) throws Exception {
+		if (loginUser.isGuestUser()) {
+			return "redirect:/users/loginForm";
+		}
+		question = qnaService.findById(questionId);
+		model.addAttribute("question", question);
+		model.addAttribute("editFlag", true);
+		return "/qna/form";
+	}
+
+	@RequestMapping(value = "/{questionId}/edit", method = RequestMethod.POST)
+	public String edit(@LoginUser User loginUser, Question question)
+			throws Exception {
+		qnaService.updateQuestion(question.getQuestionId(), question,
+				loginUser);
+		return "redirect:/questions/" + question.getQuestionId();
+	}
+
 	@RequestMapping(value = "/new", method = RequestMethod.GET)
-	public String createForm(@LoginUser User loginUser, Model model) throws Exception {
+	public String createForm(@LoginUser User loginUser, Model model)
+			throws Exception {
 		if (loginUser.isGuestUser()) {
 			return "redirect:/users/loginForm";
 		}
@@ -49,7 +70,8 @@ public class QuestionController {
 	}
 
 	@RequestMapping(value = "", method = RequestMethod.POST)
-	public String create(@LoginUser User loginUser, Question question) throws Exception {
+	public String create(@LoginUser User loginUser, Question question)
+			throws Exception {
 		if (loginUser.isGuestUser()) {
 			return "redirect:/users/loginForm";
 		}
@@ -58,7 +80,8 @@ public class QuestionController {
 	}
 
 	@RequestMapping(value = "/{questionId}", method = RequestMethod.DELETE)
-	public String delete(@LoginUser User loginUser, @PathVariable long questionId, Model model) throws Exception {
+	public String delete(@LoginUser User loginUser,
+			@PathVariable long questionId, Model model) throws Exception {
 		try {
 			qnaService.deleteQuestion(questionId, loginUser);
 			return "redirect:/";
