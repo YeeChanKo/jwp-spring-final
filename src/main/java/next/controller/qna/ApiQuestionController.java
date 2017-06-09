@@ -58,14 +58,18 @@ public class ApiQuestionController {
 		Map<String, Object> values = Maps.newHashMap();
 		Answer answer = new Answer(loginUser.getUserId(), contents, questionId);
 		Answer savedAnswer = answerDao.insert(answer);
+
+		log.debug("question id : {}", savedAnswer.getQuestionId());
 		questionDao.increaseCountOfAnswer(savedAnswer.getQuestionId());
+
+		log.debug("qqqq: {}", 
+				questionDao.findById(savedAnswer.getQuestionId()));
 
 		values.put("answer", savedAnswer);
 		values.put("result", Result.ok());
 		return values;
 	}
 
-	/// api/questions/8/answers/7
 	@RequestMapping(value = "/{questionId}/answers/{answerId}", method = RequestMethod.DELETE)
 	public Result deleteAnswer(@LoginUser User loginUser,
 			@PathVariable("answerId") long answerId) throws Exception {

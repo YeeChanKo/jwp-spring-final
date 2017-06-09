@@ -1,8 +1,11 @@
 package next.model;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.validation.constraints.Size;
+
+import next.CannotOperateException;
 
 public class Question {
 	private long questionId;
@@ -18,18 +21,26 @@ public class Question {
 	private Date createdDate;
 
 	private int countOfComment;
-	
+
 	private boolean deleted = false;
 
 	public Question() {
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 
 	public Question(String writer, String title, String contents) {
 		this(0, writer, title, contents, new Date(), 0);
 	}
 
-	public Question(long questionId, String writer, String title, String contents, Date createdDate,
-			int countOfComment) {
+	public Question(long questionId, String writer, String title,
+			String contents, Date createdDate, int countOfComment) {
 		this.questionId = questionId;
 		this.writer = writer;
 		this.title = title;
@@ -69,7 +80,7 @@ public class Question {
 	public Date getCreatedDate() {
 		return createdDate;
 	}
-	
+
 	public long getTimeFromCreateDate() {
 		return this.createdDate.getTime();
 	}
@@ -77,11 +88,11 @@ public class Question {
 	public int getCountOfComment() {
 		return countOfComment;
 	}
-	
+
 	public Question newQuestion(User user) {
 		return new Question(user.getUserId(), title, contents);
 	}
-	
+
 	public boolean isSameUser(User user) {
 		return user.isSameUser(this.writer);
 	}
@@ -93,8 +104,10 @@ public class Question {
 
 	@Override
 	public String toString() {
-		return "Question [questionId=" + questionId + ", writer=" + writer + ", title=" + title + ", contents="
-				+ contents + ", createdDate=" + createdDate + ", countOfComment=" + countOfComment + "]";
+		return "Question [questionId=" + questionId + ", writer=" + writer
+				+ ", title=" + title + ", contents=" + contents
+				+ ", createdDate=" + createdDate + ", countOfComment="
+				+ countOfComment + "]";
 	}
 
 	@Override
@@ -117,5 +130,18 @@ public class Question {
 		if (questionId != other.questionId)
 			return false;
 		return true;
+	}
+
+	public void delete(User user, List<Answer> answers)
+			throws CannotOperateException {
+		if (!isSameUser(user)) {
+			throw new CannotOperateException("다른 사용자가 쓴 글을 삭제할 수 없습니다.");
+		}
+
+		for (Answer answer : answers) {
+			answer.delete(user);
+		}
+
+		setDeleted(true);
 	}
 }

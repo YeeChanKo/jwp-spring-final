@@ -82,7 +82,7 @@ public class AnswerDao {
 	}
 
 	public void delete(Long answerId) {
-		String sql = "DELETE FROM ANSWERS WHERE answerId = ?";
-		jdbcTemplate.update(sql, answerId);
+		String sql = "UPDATE ANSWERS set deleted = ? WHERE answerId = ?";
+		jdbcTemplate.update(sql, true, answerId);
 	}
 }

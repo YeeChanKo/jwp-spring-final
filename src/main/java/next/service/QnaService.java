@@ -4,6 +4,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.stereotype.Service;
+
 import next.CannotOperateException;
 import next.dao.AnswerDao;
 import next.dao.QuestionDao;
@@ -11,11 +14,9 @@ import next.model.Answer;
 import next.model.Question;
 import next.model.User;
 
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.stereotype.Service;
-
 @Service
 public class QnaService {
+
 	private QuestionDao questionDao;
 	private AnswerDao answerDao;
 
@@ -37,15 +38,10 @@ public class QnaService {
 			throws CannotOperateException {
 		Answer answer = answerDao.findById(answerId);
 		if (answer == null) {
-			throw new EmptyResultDataAccessException("존재하지 않는 질문입니다.", 1);
+			throw new EmptyResultDataAccessException("존재하지 않는 답변입니다.", 1);
 		}
-
-		if (!answer.isSameUser(user)) {
-			throw new CannotOperateException("다른 사용자가 쓴 글을 수정할 수 없습니다.");
-		}
-
-		answer.setDeleted(true);
-		answerDao.update(answer);
+		answer.delete(user);
+		answerDao.delete(answerId);
 		questionDao.decreaseCountOfAnswer(answer.getQuestionId());
 	}
 
@@ -64,9 +60,17 @@ public class QnaService {
 		questionDao.update(question);
 	}
 
-	public void deleteQuestion(long questionId, User loginUser)
+	public void deleteQuestion(long questionId, User user)
 			throws CannotOperateException {
-		// TODO Auto-generated method stub
-
+		Question question = questionDao.findById(questionId);
+		if (question == null) {
+			throw new EmptyResultDataAccessException("존재하지 않는 질문입니다.", 1);
+		}
+		List<Answer> answers = answerDao.findAllByQuestionId(questionId);
+		question.delete(user, answers);
+		questionDao.delete(questionId);
+		for (Answer answer : answers) {
+			answerDao.delete(answer.getAnswerId());
+		}
 	}
 }

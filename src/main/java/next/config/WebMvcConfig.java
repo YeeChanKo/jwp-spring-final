@@ -18,53 +18,59 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import core.web.argumentresolver.LoginUserHandlerMethodArgumentResolver;
+import next.interceptor.BasicAuthIntercepter;
 import next.interceptor.PerformanceInterceptor;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(
-	basePackages = { "next.controller" },
-	includeFilters = @ComponentScan.Filter(value = Controller.class, type = FilterType.ANNOTATION)
-)
+@ComponentScan(basePackages = {
+		"next.controller" }, includeFilters = @ComponentScan.Filter(value = Controller.class, type = FilterType.ANNOTATION))
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
-    private static final int CACHE_PERIOD = 31556926; // one year
-    
-    @Bean
-    public ViewResolver viewResolver() {
-        InternalResourceViewResolver bean = new InternalResourceViewResolver();
-        bean.setViewClass(JstlView.class);
-        bean.setPrefix("/WEB-INF/jsp/");
-        bean.setSuffix(".jsp");
-        return bean;
-    }
-    
-    @Bean
-    public PerformanceInterceptor performanceInterceptor() {
-    	return new PerformanceInterceptor();
-    }
-    
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-    	registry.addInterceptor(performanceInterceptor())
-    		.addPathPatterns("/**");
-    }
-    
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry
-            .addResourceHandler("/resources/**")
-                .addResourceLocations("/WEB-INF/static_resources/")
-                .setCachePeriod(CACHE_PERIOD);
-    }
-    
-    @Override
-    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-    	argumentResolvers.add(new LoginUserHandlerMethodArgumentResolver());
-    }
-    
-    @Override
-    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
-        // Serving static files using the Servlet container's default Servlet.
-        configurer.enable();
-    }    
+	private static final int CACHE_PERIOD = 31556926; // one year
+
+	@Bean
+	public ViewResolver viewResolver() {
+		InternalResourceViewResolver bean = new InternalResourceViewResolver();
+		bean.setViewClass(JstlView.class);
+		bean.setPrefix("/WEB-INF/jsp/");
+		bean.setSuffix(".jsp");
+		return bean;
+	}
+
+	@Bean
+	public BasicAuthIntercepter basicAuthIntercepter() {
+		return new BasicAuthIntercepter();
+	}
+
+	@Bean
+	public PerformanceInterceptor performanceInterceptor() {
+		return new PerformanceInterceptor();
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(performanceInterceptor())
+				.addPathPatterns("/**");
+		registry.addInterceptor(basicAuthIntercepter());
+	}
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/resources/**")
+				.addResourceLocations("/WEB-INF/static_resources/")
+				.setCachePeriod(CACHE_PERIOD);
+	}
+
+	@Override
+	public void addArgumentResolvers(
+			List<HandlerMethodArgumentResolver> argumentResolvers) {
+		argumentResolvers.add(new LoginUserHandlerMethodArgumentResolver());
+	}
+
+	@Override
+	public void configureDefaultServletHandling(
+			DefaultServletHandlerConfigurer configurer) {
+		// Serving static files using the Servlet container's default Servlet.
+		configurer.enable();
+	}
 }

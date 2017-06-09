@@ -2,6 +2,8 @@ package next.controller.qna;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +22,9 @@ import next.service.QnaService;
 @Controller
 @RequestMapping("/questions")
 public class QuestionController {
+	private static final Logger log = LoggerFactory
+			.getLogger(QuestionController.class);
+
 	@Autowired
 	private QuestionDao questionDao;
 	@Autowired
@@ -29,6 +34,7 @@ public class QuestionController {
 	public String show(@PathVariable long questionId, Model model)
 			throws Exception {
 		Question question = qnaService.findById(questionId);
+		log.debug("requested question : {}", question);
 		List<Answer> answers = qnaService.findAllByQuestionId(questionId);
 		model.addAttribute("question", question);
 		model.addAttribute("answers", answers);
@@ -82,6 +88,7 @@ public class QuestionController {
 			qnaService.deleteQuestion(questionId, loginUser);
 			return "redirect:/";
 		} catch (CannotOperateException e) {
+			log.error("{}", e);
 			model.addAttribute("question", qnaService.findById(questionId));
 			model.addAttribute("errorMessage", e.getMessage());
 			return "show";

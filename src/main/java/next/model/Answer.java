@@ -2,6 +2,8 @@ package next.model;
 
 import java.util.Date;
 
+import next.CannotOperateException;
+
 public class Answer {
 	private long answerId;
 
@@ -99,5 +101,13 @@ public class Answer {
 		return "Answer [answerId=" + answerId + ", writer=" + writer
 				+ ", contents=" + contents + ", createdDate=" + createdDate
 				+ ", questionId=" + questionId + "]";
+	}
+
+	public void delete(User user) throws CannotOperateException {
+		if (!isSameUser(user)) {
+			throw new CannotOperateException("다른 사용자가 쓴 글을 삭제할 수 없습니다.");
+		}
+
+		setDeleted(true);
 	}
 }

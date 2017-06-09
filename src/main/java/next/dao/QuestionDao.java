@@ -11,6 +11,8 @@ import javax.annotation.Resource;
 
 import next.model.Question;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -20,6 +22,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class QuestionDao {
+	private static final Logger log = LoggerFactory
+			.getLogger(QuestionDao.class);
+
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
@@ -45,7 +50,7 @@ public class QuestionDao {
 	}
 
 	public List<Question> findAll() {
-		String sql = "SELECT questionId, writer, title, createdDate, countOfAnswer FROM QUESTIONS "
+		String sql = "SELECT questionId, writer, title, createdDate, countOfAnswer FROM QUESTIONS WHERE deleted = 'FALSE'"
 				+ "order by questionId desc";
 
 		RowMapper<Question> rm = new RowMapper<Question>() {
@@ -64,7 +69,7 @@ public class QuestionDao {
 	}
 
 	public Question findById(long questionId) {
-		String sql = "SELECT questionId, writer, title, contents, createdDate, countOfAnswer FROM QUESTIONS "
+		String sql = "SELECT questionId, writer, title, contents, createdDate, countOfAnswer, deleted FROM QUESTIONS "
 				+ "WHERE questionId = ?";
 
 		RowMapper<Question> rm = new RowMapper<Question>() {
@@ -83,26 +88,25 @@ public class QuestionDao {
 	}
 
 	public void update(Question question) {
-		String sql = "UPDATE QUESTIONS set title = ?, contents = ? WHERE questionId = ?";
+		String sql = "UPDATE QUESTIONS set title = ?, contents = ?, deleted = ? WHERE questionId = ?";
 		jdbcTemplate.update(sql, question.getTitle(), question.getContents(),
-				question.getQuestionId());
+				question.isDeleted(), question.getQuestionId());
 	}
 
 	public void delete(long questionId) {
-		String sql = "DELETE FROM QUESTIONS WHERE questionId = ?";
-		jdbcTemplate.update(sql, questionId);
+		String sql = "UPDATE QUESTIONS set deleted = ? WHERE questionId = ?";
+		jdbcTemplate.update(sql, true, questionId);
 	}
 
 	public void increaseCountOfAnswer(long questionId) {
-		updateCountOfAnswerRelatively(questionId, 1);
+		String sql = "UPDATE QUESTIONS set countOfAnswer = countOfAnswer + 1 WHERE questionId = ?";
+		jdbcTemplate.update(sql, questionId);
+		log.debug("increase count of answer called");
 	}
 
 	public void decreaseCountOfAnswer(long questionId) {
-		updateCountOfAnswerRelatively(questionId, -1);
-	}
-
-	public void updateCountOfAnswerRelatively(long questionId, int difference) {
-		String sql = "UPDATE QUESTIONS set countOfAnswer = countOfAnswer + ? WHERE questionId = ?";
-		jdbcTemplate.update(sql, difference, questionId);
+		String sql = "UPDATE QUESTIONS set countOfAnswer = countOfAnswer - 1 WHERE questionId = ?";
+		jdbcTemplate.update(sql, questionId);
+		log.debug("decrease count of answer called");
 	}
 }
